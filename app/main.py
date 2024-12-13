@@ -1,21 +1,25 @@
 from bs4 import BeautifulSoup
 import requests
+import pandas as pd
+from io import StringIO
 
-page_to_scrape = requests.get("https://www.sportspunter.com/sports-betting/soccer/england/premier-league")
-soup = BeautifulSoup(page_to_scrape.text, "html.parser")
+# Set the headers to include a User-Agent
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+}
 
-matches = soup("a")
+url = 'https://www.sportspunter.com/sports-betting/soccer/england/premier-league'
+response = requests.get(url, headers=headers)
+
+# Parse the tables using BeautifulSoup and pandas
+soup = BeautifulSoup(response.text, 'html.parser')
+tables = pd.read_html(StringIO(str(soup)))
+
+#tables is an array of tables, currently holds all the tables for the page above
+# have a play around and see what tables represent what
 
 
-# Find all <td> tags, then find the <table> inside, followed by <tbody>, <tr>, and <td>
-for td in soup.find_all('table'):
-    # Find the table inside the <td>
-    table = td.find('tbody')
-    if table:
-        # Find the <tbody> inside the <table>
-        tbody = table.find('tr')
-        if tbody:
-            # Find all <tr> tags inside the <tbody>
-            for tr in tbody.find_all('a'):
-                for link in tr.find_all('a'):
-                    print(f"Found link: {link.get('href')}, Text: {link.get_text(strip=True)}")
+i = 0
+for table in tables:
+    print(f"table no - '${i}' ",table.dropna(how="all"))
+    i+=1
